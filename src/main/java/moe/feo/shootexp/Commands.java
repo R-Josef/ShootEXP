@@ -83,6 +83,7 @@ public class Commands implements TabExecutor {
 		if (args.length == 0) {// 没有带参数
 			String[] helpArgs = { "help" };
 			onCommand(sender, cmd, label, helpArgs);
+			return true;
 		}
 		switch (args[0].toLowerCase()) {
 			case "help": {

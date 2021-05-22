@@ -23,7 +23,13 @@
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot-api</artifactId>
-			<version>1.16.4-R0.1-SNAPSHOT</version>
+			<version>1.12.2-R0.1-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.spigotmc</groupId>
+			<artifactId>spigot-api</artifactId>
+			<version>1.16.5-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -35,7 +41,8 @@
 			<groupId>com.sucy.skill</groupId>
 			<artifactId>SkillAPI</artifactId>
 			<version>s1.97</version>
-			<scope>provided</scope>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/SkillAPI-s1.97.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>net.Indyuce</groupId>

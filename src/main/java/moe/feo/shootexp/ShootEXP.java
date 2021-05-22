@@ -1,5 +1,6 @@
 package moe.feo.shootexp;
 
+import moe.feo.shootexp.NMS.NMS_Class;
 import moe.feo.shootexp.config.Config;
 import moe.feo.shootexp.config.Language;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -11,6 +12,7 @@ public class ShootEXP extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
+		NMS_Class.init();
 		saveDefaultConfig();
 		Config.load();
 		Language.saveDefault();

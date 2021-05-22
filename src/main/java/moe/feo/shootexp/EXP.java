@@ -1,5 +1,7 @@
 package moe.feo.shootexp;
 
+import moe.feo.shootexp.NMS.ItemNBTSet;
+import moe.feo.shootexp.NMS.NMS_Class;
 import moe.feo.shootexp.config.Config;
 import moe.feo.shootexp.config.Language;
 import org.bukkit.Bukkit;
@@ -7,8 +9,6 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,15 +52,10 @@ public class EXP {
 		if (item.hasItemMeta()) {
 			ItemMeta meta = item.getItemMeta();
 			assert meta != null;
-			PersistentDataContainer container = meta.getPersistentDataContainer();
-			this.owner = container.get(ownerKey, PersistentDataType.STRING);
-			this.recipient = container.get(recipientKey, PersistentDataType.STRING);
-			Integer amount = container.get(amountKey, PersistentDataType.INTEGER);
-			if (amount != null) {
-				this.amount = amount;
-			} else {
-				this.amount = 0;
-			}
+			ItemNBTSet nbt  = new ItemNBTSet(item);
+			this.owner = nbt.getString(ownerKey.getKey());
+			this.recipient = nbt.getString(recipientKey.getKey());
+			this.amount = nbt.getInt(amountKey.getKey());
 		} else {
 			this.owner = null;
 			this.recipient = null;
@@ -76,14 +71,20 @@ public class EXP {
 	 * @return 物品是否为粘稠的经验
 	 */
 	public static boolean isEXPItem(ItemStack item) {
-		if (item.getType() == Material.BONE_MEAL || item.hasItemMeta()) {
-			ItemMeta meta = item.getItemMeta();
-			assert meta != null;
-			PersistentDataContainer container = meta.getPersistentDataContainer();
-			return container.has(ownerKey, PersistentDataType.STRING) || container.has(recipientKey, PersistentDataType.STRING) ||
-					container.has(amountKey, PersistentDataType.STRING);
+		if (NMS_Class.version.equalsIgnoreCase("v1_12_R1")) {
+			if (item.getType() != Material.getMaterial("INK_SACK") && !item.hasItemMeta() && item.getDurability() != 15) {
+				return false;
+			}
+		} else {
+			if (item.getType() != Material.getMaterial("BONE_MEAL") && !item.hasItemMeta()) {
+				return false;
+			}
 		}
-		return false;
+		ItemMeta meta = item.getItemMeta();
+		assert meta != null;
+		ItemNBTSet nbt = new ItemNBTSet(item);
+		return nbt.hasKey(ownerKey.getKey()) || nbt.hasKey(recipientKey.getKey()) ||
+				nbt.hasKey(amountKey.getKey());
 	}
 
 	/**
@@ -91,8 +92,12 @@ public class EXP {
 	 * @return 生成的经验物品
 	 */
 	private ItemStack genEXPItem() {
-		ItemStack item = new ItemStack(Material.BONE_MEAL);
-		ItemMeta meta = Bukkit.getItemFactory().getItemMeta(Material.BONE_MEAL);
+		ItemStack item;
+		if (NMS_Class.version.equalsIgnoreCase("v1_12_R1"))
+			item = new ItemStack(Material.getMaterial("INK_SACK"), 1, (short) 15);
+		else
+			item = new ItemStack(Material.getMaterial("BONE_MEAL"));
+		ItemMeta meta = item.getItemMeta();
 		String itemName = Language.ITEM_NAME.getString().replace("%OWNER%", owner)
 				.replace("%RECIPIENT%", recipient).replace("%AMOUNT%", Integer.toString(amount));
 		List<String > loreList = new ArrayList<>();
@@ -103,14 +108,17 @@ public class EXP {
 		assert meta != null;
 		meta.setDisplayName(itemName);
 		meta.setLore(loreList);
-		if (Config.CUSTOM_MODEL_DATA_ENABLE.getBoolean()) {
-			meta.setCustomModelData(Config.CUSTOM_MODEL_DATA_VALUE.getInt());
+		if (!NMS_Class.version.equalsIgnoreCase("v1_12_R1")) {
+			if (Config.CUSTOM_MODEL_DATA_ENABLE.getBoolean()) {
+				meta.setCustomModelData(Config.CUSTOM_MODEL_DATA_VALUE.getInt());
+			}
 		}
-		PersistentDataContainer container = meta.getPersistentDataContainer();
-		container.set(ownerKey, PersistentDataType.STRING, owner);
-		container.set(recipientKey, PersistentDataType.STRING, recipient);
-		container.set(amountKey, PersistentDataType.INTEGER, amount);
 		item.setItemMeta(meta);
+		ItemNBTSet nbt = new ItemNBTSet(item);
+		nbt.setString(ownerKey.getKey(),  owner);
+		nbt.setString(recipientKey.getKey(), recipient);
+		nbt.setInt(amountKey.getKey(), amount);
+		item = nbt.saveNBT();
 		return item;
 	}
 
